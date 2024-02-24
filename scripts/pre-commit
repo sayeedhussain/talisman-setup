@@ -1,0 +1,22 @@
+#!/bin/sh
+
+set -e
+
+TALISMAN_HOME=.git/hooks/bin/talisman
+
+# Install talisman if not found in repo
+if [ ! -e $TALISMAN_HOME ]; then
+  echo "Talisman not found in repo. Installing..."
+  mv .git/hooks/pre-commit .git/hooks/pre-commit.stage
+
+  curl --silent https://thoughtworks.github.io/talisman/install.sh > install.sh
+  if ! command -v shasum &> /dev/null; then # workaround for windows which doesn't have `shasum`
+    sed -i 's/shasum -a 256/sha256sum/' install.sh
+  fi
+  bash install.sh pre-commit
+  rm install.sh
+
+  mv .git/hooks/pre-commit.stage .git/hooks/pre-commit
+fi
+
+$TALISMAN_HOME --githook pre-commit;
